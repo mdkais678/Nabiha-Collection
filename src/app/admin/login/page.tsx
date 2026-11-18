@@ -1,0 +1,8 @@
+ "use client";
+import { useState } from "react";
+import { getSupabaseBrowser } from "@/lib/supabase/browser";
+export default function AdminLogin() {
+ const [email,setEmail]=useState(""); const [password,setPassword]=useState(""); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
+ async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const sb=getSupabaseBrowser();const {error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;window.location.href="/admin";}catch(err){setError(err instanceof Error?err.message:"Unable to sign in");}finally{setBusy(false);}}
+ return <main className="min-h-[70vh] bg-[#F8F5EF] flex items-center justify-center p-6"><form onSubmit={submit} className="bg-white p-9 w-full max-w-md shadow-sm"><p className="eyebrow text-[#a58b5c]">Nabiha Collection · Secure area</p><h1 className="serif text-4xl mt-3">Admin sign in</h1><label className="block text-xs mt-7 mb-2">Email</label><input required type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full border p-3 text-sm"/><label className="block text-xs mt-4 mb-2">Password</label><input required type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full border p-3 text-sm"/>{error&&<p className="text-red-700 text-xs mt-4">{error}</p>}<button disabled={busy} className="gold-button mt-7 w-full justify-center">{busy?"Signing in…":"Sign in →"}</button><p className="text-xs text-[#8b8176] mt-5">Create your admin user in Supabase Auth, then add its UUID to public.admin_roles.</p></form></main>;
+}

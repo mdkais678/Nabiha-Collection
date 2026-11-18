@@ -1,0 +1,8 @@
+type OrderNotice={order_number:string;customer_name:string;phone:string;city:string;address:string;total:number;payment_method:string;items:{product_name:string;size:string|null;quantity:number;unit_price:number}[]};
+export async function notifyOwnerWhatsApp(order:OrderNotice){
+ const token=process.env.WHATSAPP_ACCESS_TOKEN, phoneId=process.env.WHATSAPP_PHONE_NUMBER_ID, to=(process.env.WHATSAPP_OWNER_NUMBER||"923133316526").replace(/\D/g,""), version=process.env.WHATSAPP_API_VERSION||"v22.0", template=process.env.WHATSAPP_ORDER_TEMPLATE;
+ if(!token||!phoneId||!template)return {ok:false,error:"WhatsApp Cloud API credentials or approved template are not configured."};
+ const bodyText=`New order ${order.order_number} | ${order.customer_name} | ${order.phone} | ${order.city} | Total PKR ${order.total}. Please open admin dashboard for full details.`;
+ const body={messaging_product:"whatsapp",to,type:"template",template:{name:template,language:{code:process.env.WHATSAPP_TEMPLATE_LANGUAGE||"en"},components:[{type:"body",parameters:[{type:"text",text:order.order_number},{type:"text",text:order.customer_name},{type:"text",text:order.phone},{type:"text",text:order.city},{type:"text",text:String(order.total)}]}]}};
+ try{const res=await fetch(`https://graph.facebook.com/${version}/${phoneId}/messages`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error?.message||"WhatsApp API request failed");return {ok:true,id:data.messages?.[0]?.id};}catch(e){return {ok:false,error:e instanceof Error?e.message:"WhatsApp notification failed"};}
+}
